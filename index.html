@@ -1,0 +1,137 @@
+<head>
+    <title>Space Flyer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser-ce/2.8.4/phaser.min.js"></script>
+</head>
+<body>
+<!-- Use WASD to move -->
+<!-- Use Space to boost -->
+<div id="gameBox">
+</div>
+
+<style>
+* {
+    padding: 0;
+    margin: 0;
+    background-color: #000019;
+}
+</style>
+
+<script>
+var game = new Phaser.Game(1920, 900, Phaser.SHOW_ALL, 'gameBox', {
+	preload: preload,
+	create: create,
+	update: update
+});
+
+charSpeed = 0;
+var enemy;
+var ship;
+var rotationSpeed = 0;
+var stars = [];
+var star; 
+var boostSpeed = 1;
+
+function preload() {
+	game.load.crossOrigin = "anonymous";
+	game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+	game.scale.pageAlignHorizontally = true;
+	game.scale.pageAlignVertically = true;
+	game.stage.backgroundColor = "#000019";
+	game.load.image("ship", "http://i.imgur.com/TSUYhun.png");
+	game.load.image("star", "http://i.imgur.com/emPrqiC.png?1");
+}
+
+function create() {
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+	ship = game.add.sprite(600, 400, "ship");
+	ship.scale.setTo(0.8);
+	ship.anchor.setTo(0.5, 0.5);
+	game.physics.enable(ship, Phaser.Physics.ARCADE);
+	ship.body.collideWorldBounds = true;
+	makeStars();
+}
+
+function update() {
+	handleControls();
+	ship.rotation += rotationSpeed;
+	rotationSpeed *= 0.98;
+	if (!game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+		if (ship.y >= 800) {
+			if (ship.rotation < 0) {
+				ship.y = ship.y + charSpeed * Math.sin(ship.rotation);
+			}
+		} else if (ship.y <= 100) {
+			if (ship.rotation > 0) {
+				ship.y = ship.y + charSpeed * Math.sin(ship.rotation);
+			}
+		} else {
+			ship.y = ship.y + charSpeed * Math.sin(ship.rotation);
+		}
+
+		if (ship.x >= 1800) {
+			if (Math.abs(ship.rotation) > 1.5) {
+				ship.x = ship.x + charSpeed * Math.cos(ship.rotation);
+			}
+		} else if (ship.x <= 100) {
+			if (Math.abs(ship.rotation) < 1.5) {
+				ship.x = ship.x + charSpeed * Math.cos(ship.rotation);
+			}
+		} else {
+			ship.x = ship.x + charSpeed * Math.cos(ship.rotation);
+		}
+	}
+	for (var i = 0; i < stars.length; i += 2) {
+		star = stars[i];
+		star.x =
+			-stars[i + 1] * boostSpeed * (charSpeed * Math.cos(ship.rotation)) + star.x;
+		star.y =
+			-stars[i + 1] * boostSpeed * (charSpeed * Math.sin(ship.rotation)) + star.y;
+	}
+}
+
+function handleControls() {
+	if (game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+		charSpeed = 0;
+		rotationSpeed = 0;
+		refreshStars();
+	} else {
+		if (game.input.keyboard.isDown(Phaser.Keyboard.W) && charSpeed < 10) {
+			charSpeed += 0.05;
+		} else {
+			charSpeed *= 0.97;
+		}
+		if (game.input.keyboard.isDown(Phaser.Keyboard.A) && rotationSpeed > -0.25) {
+			rotationSpeed -= Math.radians(0.2);
+		}
+		if (game.input.keyboard.isDown(Phaser.Keyboard.D) && rotationSpeed < 0.25) {
+			rotationSpeed += Math.radians(0.2);
+		}
+	}
+}
+
+Math.radians = function(degrees) {
+	return degrees * Math.PI / 180;
+};
+
+
+function makeStars() {
+	for (var i = 0; i < 10000; i += 2) {
+		star2 = game.add.sprite(
+			Math.random() * 8000 - 4000,
+			Math.random() * 8000 - 4000,
+			"star"
+		);
+		stars[i] = star2;
+		stars[i + 1] = Math.random() * 12 * 0.1;
+	}
+}
+function refreshStars() {
+	for (var i = 0; i < stars.length; i += 2) {
+		var newStar = stars[i];
+		newStar.x = Math.random() * 8000 - 4000;
+		newStar.y = Math.random() * 8000 - 4000;
+		charSpeed = 5;
+	}
+}
+
+</script>
